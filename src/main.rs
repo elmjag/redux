@@ -1,46 +1,26 @@
 mod actions;
 mod reducer;
 mod state;
+mod store;
 
 use actions::*;
-use reducer::*;
-use state::*;
+use store::*;
 
 fn main() {
-    let mut state = State::new();
-    let mut snap = state.get_snapshot(0);
+    let mut store = Store::new();
 
-    println!("    {state:?}\n--> {snap:?}\n");
+    store.dispatch(Action::new_rotate_left(0));
+    store.dispatch(Action::new_stop(10));
+    store.dispatch(Action::new_stop(15));
+    store.dispatch(Action::new_rotate_right(20));
 
-    state = reduce(&state, &Action::new_rotate_left(0));
-    snap = state.get_snapshot(5);
-    println!("    {state:?}\n--> {snap:?}\n");
+    println!("{:?}", store.process(40));
 
-    state = reduce(&state, &Action::new_stop(10));
-    snap = state.get_snapshot(15);
-    println!("    {state:?}\n--> {snap:?}\n");
+    store.dispatch(Action::new_stop(40));
+    store.dispatch(Action::new_rotate_left(50));
+    store.dispatch(Action::new_rotate_right(60));
+    store.dispatch(Action::new_stop(80));
 
-    state = reduce(&state, &Action::new_stop(15));
-    snap = state.get_snapshot(20);
-    println!("    {state:?}\n--> {snap:?}\n");
-
-    state = reduce(&state, &Action::new_rotate_right(20));
-    snap = state.get_snapshot(25);
-    println!("    {state:?}\n--> {snap:?}\n");
-
-    state = reduce(&state, &Action::new_stop(30));
-    snap = state.get_snapshot(35);
-    println!("    {state:?}\n--> {snap:?}\n");
-
-    state = reduce(&state, &Action::new_rotate_left(40));
-    snap = state.get_snapshot(45);
-    println!("    {state:?}\n--> {snap:?}\n");
-
-    state = reduce(&state, &Action::new_rotate_right(50));
-    snap = state.get_snapshot(55);
-    println!("    {state:?}\n--> {snap:?}\n");
-
-    state = reduce(&state, &Action::new_stop(60));
-    snap = state.get_snapshot(65);
-    println!("    {state:?}\n--> {snap:?}\n");
+    println!("{:?}", store.process(80));
+    println!("{:?}", store.process(100));
 }

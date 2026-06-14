@@ -4,8 +4,6 @@ use crate::{
 };
 
 pub fn reduce(state: &State, action: &Action) -> State {
-    println!("reduce {action:?}");
-
     let ts = action.timestamp;
 
     match action.kind {
