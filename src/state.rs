@@ -1,18 +1,20 @@
-const RADIANS_PER_MS: f32 = 2.0 / 1000.0;
+use crate::{actions::Action, state::RotationState::Rotating, store::Dispatcher};
+
+const RADIANS_PER_MS: f32 = 1.0;
 
 #[derive(Debug)]
 pub struct State {
     rotation: Rotation,
 }
 
-#[derive(Debug, Clone)]
-enum RotationDirection {
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum RotationDirection {
     Positive,
     Negative,
 }
 
-#[derive(Debug, Clone)]
-enum RotationState {
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum RotationState {
     Idle,
     Rotating {
         start_ts: u32,
@@ -20,8 +22,8 @@ enum RotationState {
     },
 }
 
-#[derive(Debug, Clone)]
-struct Rotation {
+#[derive(Debug, Copy, Clone)]
+pub struct Rotation {
     state: RotationState,
     angle: f32,
 }
@@ -32,6 +34,14 @@ impl Rotation {
             state: RotationState::Idle,
             angle: 0.0,
         }
+    }
+
+    pub fn state(&self) -> &RotationState {
+        &self.state
+    }
+
+    pub fn angle(&self) -> f32 {
+        self.angle
     }
 
     fn get_updated_angle(&self, direction: &RotationDirection, start_ts: u32, now_ts: u32) -> f32 {
@@ -125,6 +135,46 @@ impl State {
         Self {
             rotation: self.rotation.get_snapshot(timestamp),
         }
+    }
+
+    pub fn rotation(&self) -> &Rotation {
+        &self.rotation
+    }
+
+    pub fn handle_key_down(
+        &self,
+        dispatcher: &mut Dispatcher,
+        timestamp: u32,
+        keycode: u32,
+    ) -> Self {
+        if keycode == 0 {
+            // left
+            dispatcher.dispatch(Action::new_rotate_left(timestamp));
+        } else {
+            // right
+            assert!(keycode == 1);
+            dispatcher.dispatch(Action::new_rotate_right(timestamp));
+        };
+        Self { ..*self }
+    }
+
+    pub fn handle_key_up(&self, dispatcher: &mut Dispatcher, timestamp: u32, keycode: u32) -> Self {
+        let expected_dir = if keycode == 0 {
+            // left
+            RotationDirection::Positive
+        } else {
+            // right
+            assert!(keycode == 1);
+            RotationDirection::Negative
+        };
+
+        if let Rotating { direction, .. } = self.rotation.state
+            && direction == expected_dir
+        {
+            dispatcher.dispatch(Action::new_stop_rotation(timestamp));
+        }
+
+        Self { ..*self }
     }
 
     pub fn start_rotation_left(&self, timestamp: u32) -> Self {
