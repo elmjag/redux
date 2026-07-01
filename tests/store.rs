@@ -1,5 +1,9 @@
 use redux::{
-    actions::Action,
+    sdl::{Event as SdlEvent, KeyCode},
+    slices::{
+        keyboard::KeyInputAction,
+        rotations::{self, RotationAction},
+    },
     state::{Rotation, RotationDirection, RotationState},
     store::Store,
 };
@@ -18,7 +22,7 @@ fn assert_rotation(rotation: &Rotation, state: RotationState, angle: f32) {
 fn rotate_left() {
     let mut store = Store::new();
 
-    store.dispatch(Action::new_rotate_left(0));
+    store.dispatch(0, RotationAction::new(rotations::Rotation::RotateLeft));
     let state = store.process(10);
 
     assert_rotation(
@@ -35,7 +39,8 @@ fn rotate_left() {
 fn key_down() {
     let mut store = Store::new();
 
-    store.dispatch(Action::new_key_down(0, 1));
+    store.dispatch(0, KeyInputAction::new(SdlEvent::KeyDown(KeyCode::Right)));
+
     let state = store.process(20);
 
     assert_rotation(
@@ -52,8 +57,9 @@ fn key_down() {
 fn key_down_up() {
     let mut store = Store::new();
 
-    store.dispatch(Action::new_key_down(0, 0));
-    store.dispatch(Action::new_key_up(10, 0));
+    store.dispatch(0, KeyInputAction::new(SdlEvent::KeyDown(KeyCode::Left)));
+    store.dispatch(10, KeyInputAction::new(SdlEvent::KeyUp(KeyCode::Left)));
+
     let state = store.process(20);
 
     assert_rotation(&state.rotation(), RotationState::Idle, 10.0);
@@ -69,10 +75,11 @@ fn key_down_up() {
 fn key_down_down_up() {
     let mut store = Store::new();
 
-    store.dispatch(Action::new_key_down(0, 0));
-    store.dispatch(Action::new_key_down(20, 1));
+    store.dispatch(0, KeyInputAction::new(SdlEvent::KeyDown(KeyCode::Left)));
+    store.dispatch(20, KeyInputAction::new(SdlEvent::KeyDown(KeyCode::Right)));
+
     // this should be ignored, we are rotating right (negative) direction)
-    store.dispatch(Action::new_key_up(22, 0));
+    store.dispatch(22, KeyInputAction::new(SdlEvent::KeyUp(KeyCode::Left)));
 
     let state = store.process(40);
 

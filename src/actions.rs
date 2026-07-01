@@ -1,62 +1,24 @@
+use crate::{dispatcher::Dispatcher, state::State};
 use std::cmp::Ordering;
 
-#[derive(Debug, Clone)]
-pub enum ActionKind {
-    // key input actions
-    KeyDown { keycode: u32 },
-    KeyUp { keycode: u32 },
-
-    // rotation change actions
-    RotateLeft,
-    RotateRight,
-    StopRotation,
+pub trait ActionVariant {
+    fn reduce(&self, timestamp: u32, state: &State, dispatcher: &mut Dispatcher) -> State;
 }
 
-#[derive(Debug, Clone)]
+pub type BoxedActionVariant = Box<dyn ActionVariant>;
+
 pub struct Action {
-    pub timestamp: u32,
-    pub kind: ActionKind,
+    timestamp: u32,
+    action: Box<dyn ActionVariant>,
 }
 
 impl Action {
-    //
-    // key input actions
-    //
-    pub fn new_key_down(timestamp: u32, keycode: u32) -> Self {
-        Self {
-            timestamp,
-            kind: ActionKind::KeyDown { keycode },
-        }
-    }
-    pub fn new_key_up(timestamp: u32, keycode: u32) -> Self {
-        Self {
-            timestamp,
-            kind: ActionKind::KeyUp { keycode },
-        }
+    pub fn new(timestamp: u32, action: BoxedActionVariant) -> Self {
+        Self { timestamp, action }
     }
 
-    //
-    // rotation actions
-    //
-    pub fn new_rotate_left(timestamp: u32) -> Self {
-        Self {
-            timestamp,
-            kind: ActionKind::RotateLeft,
-        }
-    }
-
-    pub fn new_rotate_right(timestamp: u32) -> Self {
-        Self {
-            timestamp,
-            kind: ActionKind::RotateRight,
-        }
-    }
-
-    pub fn new_stop_rotation(timestamp: u32) -> Self {
-        Self {
-            timestamp,
-            kind: ActionKind::StopRotation,
-        }
+    pub fn reduce(&self, state: &State, dispatcher: &mut Dispatcher) -> State {
+        self.action.reduce(self.timestamp, state, dispatcher)
     }
 }
 

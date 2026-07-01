@@ -1,24 +1,13 @@
-use crate::{actions::Action, reducer::reduce, state::State};
+use crate::{
+    actions::{Action, BoxedActionVariant},
+    dispatcher::Dispatcher,
+    state::State,
+};
 use std::collections::BinaryHeap;
 
-#[derive(Debug)]
 pub struct Store {
     state: State,
     pending_actions: BinaryHeap<Action>,
-}
-
-pub struct Dispatcher {
-    actions: Vec<Action>,
-}
-
-impl Dispatcher {
-    fn new() -> Self {
-        Self { actions: vec![] }
-    }
-
-    pub fn dispatch(&mut self, action: Action) {
-        self.actions.push(action);
-    }
 }
 
 impl Store {
@@ -29,18 +18,18 @@ impl Store {
         }
     }
 
-    pub fn dispatch(&mut self, action: Action) {
-        self.pending_actions.push(action);
+    pub fn dispatch(&mut self, timestamp: u32, action: BoxedActionVariant) {
+        self.pending_actions.push(Action::new(timestamp, action));
     }
 
     fn process_next_action(&mut self) {
         let mut dispatcher = Dispatcher::new();
         let next_action = self.pending_actions.pop().unwrap();
 
-        self.state = reduce(&self.state, &next_action, &mut dispatcher);
+        self.state = next_action.reduce(&self.state, &mut dispatcher);
 
-        for action in dispatcher.actions {
-            self.dispatch(action);
+        for action in dispatcher {
+            self.pending_actions.push(action);
         }
     }
 
