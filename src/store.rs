@@ -1,6 +1,7 @@
 use crate::{
     actions::{Action, BoxedActionVariant},
     dispatcher::Dispatcher,
+    features::rotation::slice::RotationSlice,
     state::State,
 };
 use std::collections::BinaryHeap;
@@ -12,8 +13,12 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Self {
+        let mut state = State::new();
+
+        state.add_slice("rotation", RotationSlice::new());
+
         Self {
-            state: State::new(),
+            state,
             pending_actions: BinaryHeap::new(),
         }
     }
@@ -26,7 +31,7 @@ impl Store {
         let mut dispatcher = Dispatcher::new();
         let next_action = self.pending_actions.pop().unwrap();
 
-        self.state = next_action.reduce(&self.state, &mut dispatcher);
+        next_action.reduce(&mut self.state, &mut dispatcher);
 
         for action in dispatcher {
             self.pending_actions.push(action);

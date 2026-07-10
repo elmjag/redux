@@ -2,7 +2,7 @@ use crate::{dispatcher::Dispatcher, state::State};
 use std::cmp::Ordering;
 
 pub trait ActionVariant {
-    fn reduce(&self, timestamp: u32, state: &State, dispatcher: &mut Dispatcher) -> State;
+    fn reduce(&self, timestamp: u32, state: &mut State, dispatcher: &mut Dispatcher);
 }
 
 pub type BoxedActionVariant = Box<dyn ActionVariant>;
@@ -17,7 +17,7 @@ impl Action {
         Self { timestamp, action }
     }
 
-    pub fn reduce(&self, state: &State, dispatcher: &mut Dispatcher) -> State {
+    pub fn reduce(&self, state: &mut State, dispatcher: &mut Dispatcher) {
         self.action.reduce(self.timestamp, state, dispatcher)
     }
 }
