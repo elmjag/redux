@@ -17,7 +17,13 @@ impl State {
         self.slices.insert(String::from(id), slice);
     }
 
-    pub fn get_slice<T: Any>(&mut self, id: &str) -> &mut T {
+    pub fn get_slice<T: Any>(&self, id: &str) -> &T {
+        let boxed = self.slices.get(&String::from(id)).unwrap();
+        let any: &dyn Any = boxed.as_ref();
+        any.downcast_ref::<T>().unwrap()
+    }
+
+    pub fn get_slice_mut<T: Any>(&mut self, id: &str) -> &mut T {
         let boxed = self.slices.get_mut(&String::from(id)).unwrap();
         let any: &mut dyn Any = boxed.as_mut();
         any.downcast_mut::<T>().unwrap()

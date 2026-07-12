@@ -1,7 +1,7 @@
 use crate::{
     actions::{Action, BoxedActionVariant},
     dispatcher::Dispatcher,
-    features::rotation::slice::RotationSlice,
+    slices::BoxedSlice,
     state::State,
 };
 use std::collections::BinaryHeap;
@@ -12,10 +12,12 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn new() -> Self {
+    pub fn new(slices: Vec<(&str, BoxedSlice)>) -> Self {
         let mut state = State::new();
 
-        state.add_slice("rotation", RotationSlice::new());
+        for (id, slice) in slices {
+            state.add_slice(id, slice);
+        }
 
         Self {
             state,

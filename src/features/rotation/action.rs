@@ -18,7 +18,7 @@ pub struct RotationAction {
 
 impl ActionVariant for RotationAction {
     fn reduce(&self, timestamp: u32, state: &mut State, _: &mut Dispatcher) {
-        let slice = state.get_slice::<RotationSlice>("rotation");
+        let slice = state.get_slice_mut::<RotationSlice>("rotation");
         match self.action {
             RotationMotion::Left => slice.start_rotation(timestamp, Direction::Positive),
             RotationMotion::Right => slice.start_rotation(timestamp, Direction::Negative),
